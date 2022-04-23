@@ -1,65 +1,56 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-   /// <summary>
-   /// class to scedule doing an action after some time
-   /// </summary>
-public class CountDownTimer : MonoBehaviour
+public class CountDownTimerManager : MonoBehaviour
 {
-
-    private static CountDownTimer Instance;
+    private static CountDownTimerManager Instance;
 
     private Dictionary<string, TimerWrapper> Timers = new Dictionary<string, TimerWrapper>();
 
-
-    private bool stopExecution=false;
+    private bool removeAll;
 
     private void Start()
     {
-        DontDestroyOnLoad(this);
         Instance = this;
+        DontDestroyOnLoad(this);
+        this.removeAll = false;
     }
 
-
-       /// <summary>
-       /// doing an action after timeRemaining is 0
-       /// </summary>
-       /// <param name="timeRemaining">time</param>
-       /// <param name="doOntimme">action</param>
+    /// <summary>
+    /// doing an action after timeRemaining is 0
+    /// </summary>
+    /// <param name="timeRemaining">time</param>
+    /// <param name="doOntimme">action</param>
     public void CountDown(float timeRemaining,  DoOnTime doOntimme)
     {
-
         string id = System.Guid.NewGuid().ToString();
 
         this.CountDown(id, timeRemaining, (t)=> { }, doOntimme);
     }
 
-
-       /// <summary>
-       /// do an action every time and doing an action after timeRemaining is 0
-       /// </summary>
-       /// <param name="timeRemaining">time</param>
-       /// <param name="publishTimeRemaining">do an action when the timer update</param>
-       /// <param name="doOntimme">action</param>
+    /// <summary>
+    /// do an action every time and doing an action after timeRemaining is 0
+    /// </summary>
+    /// <param name="timeRemaining">time</param>
+    /// <param name="publishTimeRemaining">do an action when the timer update</param>
+    /// <param name="doOntimme">action</param>
     public void CountDown(float timeRemaining, PublishTimeRemaining publishTimeRemaining , DoOnTime doOntimme)
     {
-
         string id = System.Guid.NewGuid().ToString() ;
 
         this.CountDown(id, timeRemaining, publishTimeRemaining, doOntimme);
     }
 
-
-       /// <summary>
-       /// give an id for the timer(for easier control different timer), doing an action after timeRemaining is 0
-       /// </summary>
-       /// <param name="id">name of the timer</param>
-       /// <param name="timeRemaining">time</param>
-       /// <param name="doOntimme">action</param>
+    /// <summary>
+    /// give an id for the timer(for easier control different timer), doing an action after timeRemaining is 0
+    /// </summary>
+    /// <param name="id">name of the timer</param>
+    /// <param name="timeRemaining">time</param>
+    /// <param name="doOntimme">action</param>
     public void CountDown(string id, float timeRemaining,  DoOnTime doOntimme)
     {
-
         if (Timers.ContainsKey(id))
         {
             return;
@@ -68,20 +59,17 @@ public class CountDownTimer : MonoBehaviour
         TimerWrapper wrapper = new TimerWrapper(id, timeRemaining, (t) => { }, doOntimme);
 
         Timers.Add(id, wrapper);
-
     }
 
-
-        /// <summary>
-        /// give an id for the timer(for easier control different timer), do an action every time and doing an action after timeRemaining is 0
-        /// </summary>
-        /// <param name="id">name of the timer</param>
-        /// <param name="timeRemaining">time</param>
-        /// <param name="publishTimeRemaining">do an action when the timer update</param>
-        /// <param name="doOntimme">action</param>
+    /// <summary>
+    /// give an id for the timer(for easier control different timer), do an action every time and doing an action after timeRemaining is 0
+    /// </summary>
+    /// <param name="id">name of the timer</param>
+    /// <param name="timeRemaining">time</param>
+    /// <param name="publishTimeRemaining">do an action when the timer update</param>
+    /// <param name="doOntimme">action</param>
     public void CountDown(string id, float timeRemaining, PublishTimeRemaining publishTimeRemaining, DoOnTime doOntimme)
     {
-
         if (Timers.ContainsKey(id))
         {
             return;
@@ -90,15 +78,13 @@ public class CountDownTimer : MonoBehaviour
         TimerWrapper wrapper = new TimerWrapper(id, timeRemaining, publishTimeRemaining, doOntimme);
 
         Timers.Add(id, wrapper);
-
     }
 
-
-        /// <summary>
-        /// add or reduce time on the specific timer
-        /// </summary>
-        /// <param name="id">name of the timer</param>
-        /// <param name="timeToAdd">time you want to add or reduce</param>
+    /// <summary>
+    /// add or reduce time on the specific timer
+    /// </summary>
+    /// <param name="id">name of the timer</param>
+    /// <param name="timeToAdd">time you want to add or reduce</param>
     public void AddTime(string id, float timeToAdd)
     {
         if (!Timers.ContainsKey(id))
@@ -109,13 +95,12 @@ public class CountDownTimer : MonoBehaviour
         Timers[id].UpdateTime(-timeToAdd);
     }
 
-
-        /// <summary>
-        /// remove all timers form Dictionary
-        /// </summary>
-    public void ClearAllTimers()
+    /// <summary>
+    /// remove all timers form Dictionary
+    /// </summary>
+    public void RemoveAllTimers()
     {
-        this.stopExecution = true;
+        this.removeAll = true;
     }
 
     private void Update()
@@ -123,19 +108,18 @@ public class CountDownTimer : MonoBehaviour
         float deltaTime = Time.deltaTime;
         List<string> dones = new List<string>();
 
+        if(removeAll == true)
+        {
+            Timers.Clear();
+            this.removeAll = false;
+        }
+
         foreach(string timerKey in Timers.Keys)
         {
             TimerWrapper wrapper = Timers[timerKey];
-            if (stopExecution)
+            if (wrapper.TimeIsUp())
             {
-                dones.Add(timerKey);
-            }
-            else if (wrapper.TimeIsUp())
-            {
-                if (!stopExecution)
-                {
-                    wrapper.DoTask();
-                }
+                wrapper.DoTask();
                 dones.Add(timerKey);
             }
             else
@@ -150,6 +134,7 @@ public class CountDownTimer : MonoBehaviour
         }
     }
 
+    
 
     public class TimerWrapper
     {
@@ -194,12 +179,11 @@ public class CountDownTimer : MonoBehaviour
                 DoOnTime.Invoke();
                 Done = true;
             }
-
         }
     }
 
     
-    public static CountDownTimer GetInstance()
+    public static CountDownTimerManager GetInstance()
     {
         return Instance;
     }
