@@ -4,12 +4,12 @@ Count Down Timer utility for C#/Unity games/Monogame
 
 - To count dowm some logic do the follow: 
 #####
-           CountDownTimer.GetInstance().CountDown("name_of_timer", 60f, (t) =>    //name of timer is opttional
+           CountDownTimerManager.GetInstance().CountDown("name_of_timer", 60f, (t) =>    //name of timer is opttional
            {
                 TimerNum.text = string.Format("{0:0}", t);
            }, () =>
            {
-                DebugLog("Time Is Up");
+                Debug.Log("Time Is Up");
            });
         
 - To add more time in same timer
